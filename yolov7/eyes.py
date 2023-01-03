@@ -23,14 +23,16 @@ def capture_screen():
 
     white = py2.screenshot(region=(495, 865, 5, 5))
 
-    return r"E:\WORK\PetPalsEyes\image\eyes.png", white
+    return r"D:\WORK\PetPalsEyes\image\eyes.png", white
 
 
 def detect_circle(image, imgsz, stride):
-    old_img_w = old_img_h = img_size
-    old_img_b = 1
+    # old_img_w = old_img_h = img_size
+    # old_img_b = 1
 
     dataset = LoadImages(image, img_size=imgsz, stride=stride)
+
+    print("dataset")
 
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
@@ -39,12 +41,14 @@ def detect_circle(image, imgsz, stride):
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
 
-        if device.type != 'cpu' and (old_img_b != img.shape[0] or old_img_h != img.shape[2] or old_img_w != img.shape[3]):
-            old_img_b = img.shape[0]
-            old_img_h = img.shape[2]
-            old_img_w = img.shape[3]
-            for i in range(3):
-                model(img)[0]
+        print("ok")
+
+        # if device.type != 'cpu' and (old_img_b != img.shape[0] or old_img_h != img.shape[2] or old_img_w != img.shape[3]):
+        #     old_img_b = img.shape[0]
+        #     old_img_h = img.shape[2]
+        #     old_img_w = img.shape[3]
+        #     for i in range(3):
+        #         model(img)[0]
 
         with torch.no_grad():
             pred = model(img)[0]
@@ -65,7 +69,7 @@ if __name__ == '__main__':
     device = select_device('0')
     half = device.type != 'cpu'
 
-    model = attempt_load("./weights/yolov7_eyes.pt", map_location=device)
+    model = attempt_load("./weights/yolov7_eyes2.pt", map_location=device)
     stride = int(model.stride.max())
     img_size = check_img_size(640, s=stride)
 
