@@ -83,7 +83,7 @@ def yolov7(pretrained=True, channels=3, classes=80, autoshape=True):
 
 
 if __name__ == '__main__':
-    model = custom(path_or_model='weights/yolov7.pt')  # custom example
+    model = custom(path_or_model='yolov7.pt')  # custom example
     # model = create(name='yolov7', pretrained=True, channels=3, classes=80, autoshape=True)  # pretrained example
 
     # Verify inference

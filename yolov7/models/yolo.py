@@ -1,27 +1,18 @@
 import argparse
 import logging
-import math
 import sys
 from copy import deepcopy
-from pathlib import Path
 
-from yolov7.models.common import ImplicitA, ImplicitM, DWConv, Conv, RepConv, RepConv_OREPA, NMS, ST2CSPC, STCSPA, \
-    Concat, Chuncat, Foldcut, Shortcut, ReOrg, Contract, Expand, autoShape, RobustConv, RobustConv2, GhostConv, DownC, \
-    SPP, SPPF, Focus, SPPCSPC, GhostSPPCSPC, Stem, GhostStem, BottleneckCSPA, Bottleneck, BottleneckCSPB, RepBottleneck, \
-    RepBottleneckCSPA, RepBottleneckCSPB, RepBottleneckCSPC, Res, ResCSPA, ResCSPB, ResCSPC, RepRes, RepResCSPA, \
-    RepResCSPB, RepResCSPC, ResX, ResXCSPA, ResXCSPB, ResXCSPC, RepResX, RepResXCSPA, RepResXCSPB, RepResXCSPC, Ghost, \
-    GhostCSPA, GhostCSPB, GhostCSPC, STCSPB, STCSPC, SwinTransformer2Block, ST2CSPA, ST2CSPB, SwinTransformerBlock
-from yolov7.models.experimental import MixConv2d, CrossConv
-
-sys.path.append('/')  # to run '$ python *.py' files in subdirectories
+sys.path.append('./')  # to run '$ python *.py' files in subdirectories
 logger = logging.getLogger(__name__)
 import torch
-import torch.nn as nn
-from yolov7.utils.autoanchor import check_anchor_order
-from yolov7.utils.general import make_divisible, check_file, set_logging
-from yolov7.utils.torch_utils import time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights, \
+from models.common import *
+from models.experimental import *
+from utils.autoanchor import check_anchor_order
+from utils.general import make_divisible, check_file, set_logging
+from utils.torch_utils import time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights, \
     select_device, copy_attr
-from yolov7.utils.loss import SigmoidBin
+from utils.loss import SigmoidBin
 
 try:
     import thop  # for FLOPS computation
@@ -742,7 +733,7 @@ class Model(nn.Module):
         model_info(self, verbose, img_size)
 
 
-def parse_model(d, ch, BottleneckCSPC=None):  # model_dict, input_channels(3)
+def parse_model(d, ch):  # model_dict, input_channels(3)
     logger.info('\n%3s%18s%3s%10s  %-40s%-30s' % ('', 'from', 'n', 'params', 'module', 'arguments'))
     anchors, nc, gd, gw = d['anchors'], d['nc'], d['depth_multiple'], d['width_multiple']
     na = (len(anchors[0]) // 2) if isinstance(anchors, list) else anchors  # number of anchors
@@ -758,17 +749,17 @@ def parse_model(d, ch, BottleneckCSPC=None):  # model_dict, input_channels(3)
                 pass
 
         n = max(round(n * gd), 1) if n > 1 else n  # depth gain
-        if m in {nn.Conv2d, Conv, RobustConv, RobustConv2, DWConv, GhostConv, RepConv, RepConv_OREPA, DownC,
-                 SPP, SPPF, SPPCSPC, GhostSPPCSPC, MixConv2d, Focus, Stem, GhostStem, CrossConv,
-                 Bottleneck, BottleneckCSPA, BottleneckCSPB, BottleneckCSPC,
-                 RepBottleneck, RepBottleneckCSPA, RepBottleneckCSPB, RepBottleneckCSPC,
-                 Res, ResCSPA, ResCSPB, ResCSPC,
-                 RepRes, RepResCSPA, RepResCSPB, RepResCSPC,
-                 ResX, ResXCSPA, ResXCSPB, ResXCSPC,
-                 RepResX, RepResXCSPA, RepResXCSPB, RepResXCSPC,
+        if m in [nn.Conv2d, Conv, RobustConv, RobustConv2, DWConv, GhostConv, RepConv, RepConv_OREPA, DownC, 
+                 SPP, SPPF, SPPCSPC, GhostSPPCSPC, MixConv2d, Focus, Stem, GhostStem, CrossConv, 
+                 Bottleneck, BottleneckCSPA, BottleneckCSPB, BottleneckCSPC, 
+                 RepBottleneck, RepBottleneckCSPA, RepBottleneckCSPB, RepBottleneckCSPC,  
+                 Res, ResCSPA, ResCSPB, ResCSPC, 
+                 RepRes, RepResCSPA, RepResCSPB, RepResCSPC, 
+                 ResX, ResXCSPA, ResXCSPB, ResXCSPC, 
+                 RepResX, RepResXCSPA, RepResXCSPB, RepResXCSPC, 
                  Ghost, GhostCSPA, GhostCSPB, GhostCSPC,
                  SwinTransformerBlock, STCSPA, STCSPB, STCSPC,
-                 SwinTransformer2Block, ST2CSPA, ST2CSPB, ST2CSPC}:
+                 SwinTransformer2Block, ST2CSPA, ST2CSPB, ST2CSPC]:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, 8)
